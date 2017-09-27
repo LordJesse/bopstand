@@ -42,6 +42,7 @@
 
 void SSD1306_Mini::sendCommand(unsigned char command)
 {
+  Wire.begin();                       //initialize I2C
   Wire.beginTransmission(SlaveAddress); // begin I2C communication
   Wire.send(GOFi2cOLED_Command_Mode);      // Set OLED Command mode
   Wire.send(command);
@@ -188,15 +189,6 @@ void SSD1306_Mini::clear() {
   }
 }
 
-void SSD1306_Mini::send_byte(uint8_t byte)
-{ if (Wire.writeAvailable()) {
-    Wire.endTransmission();
-    Wire.beginTransmission(SlaveAddress);
-    Wire.send(GOFi2cOLED_Data_Mode);
-  }
-  Wire.send(byte);
-
-}
 
 void SSD1306_Mini::printCharS(int xpos, int ypos, char ch ) {
   cursorTo(xpos, ypos);
@@ -206,7 +198,7 @@ void SSD1306_Mini::printCharS(int xpos, int ypos, char ch ) {
   Wire.send(GOFi2cOLED_Data_Mode);            // data mode
   for (i = 0; i < 6; i++)
   {
-    Wire.send( pgm_read_byte(&font_sm[ci * 6 + i]) );
+    Wire.send( pgm_read_byte(&(font_sm[ci * 6 + i]) ));
   }
   Wire.endTransmission();
 }
@@ -220,7 +212,7 @@ void SSD1306_Mini::printCharL(int xpos, int ypos, char ch ) {
   Wire.send(GOFi2cOLED_Data_Mode);            // data mode
   for (i = 0; i < 24; i++)
   {
-    Wire.send( pgm_read_byte(&font_3a[ci * 24 + i]) );
+    Wire.send( pgm_read_byte(&(font_3a[ci * 24 + i])));
   }
   Wire.endTransmission();
   cursorTo(xpos, ypos + 1);
@@ -248,7 +240,7 @@ void SSD1306_Mini::printStringS(int xst, int yst,  char * pText ) {
   unsigned char len = strlen( pText );
 
   for (i = 0; i < len; i++) {
-    printCharS(xst + (i * 6), yst, pText[i] );
+    printCharS((xst + (i * 6)), yst, pText[i] );
   }
 }
 
@@ -261,25 +253,29 @@ void SSD1306_Mini::printStringL(int xst, int yst,  char * pText ) {
   }
 }
 
+unsigned char SSD1306_Mini::getFlash( const unsigned char * mem, unsigned int idx  ){
+  unsigned char data= pgm_read_byte( &(mem[idx]) );
+  return data;
 
+}
 
-void SSD1306_Mini::drawImage(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[])
-{
-  uint16_t j = 0;
-  uint8_t y, x;
+void SSD1306_Mini::drawImage( const uint8_t bitmap[], unsigned char col, unsigned char row, unsigned char w, unsigned char h ){
+  int i, k, data;
+  
+  clipArea( col, row, w, h);
 
-  for (y = y0; y < y1; y++)
-  {
-    cursorTo(x0, y0);
+  for (i = 0; i < (w * h); i++) {
+
+    data = getFlash( bitmap, i);
+
     Wire.beginTransmission(SlaveAddress);
-    Wire.send(GOFi2cOLED_Data_Mode);
-    for (x = x0; x < x1; x++)
-    {
-      Wire.send(pgm_read_byte(&bitmap[j++]));
-    }
+    Wire.send(GOFi2cOLED_Data_Mode);            // data mode
+
+    Wire.send( data );
     Wire.endTransmission();
+
   }
-  cursorTo(0, 0);
+
 }
 
 

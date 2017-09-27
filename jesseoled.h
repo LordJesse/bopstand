@@ -133,16 +133,14 @@ class SSD1306_Mini {
     void printStringL(int xst, int yst,  char * pText );
     
     // draw an image with defined x,y position and width,height definition
-    void drawImage(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
-    
+   void drawImage( const unsigned char * img, unsigned char col, unsigned char row, unsigned char w, unsigned char h );
+
+        
 //  private:
     void sendCommand(unsigned char command);
     void sendData(unsigned char Data);
-    void send_byte(uint8_t byte);
   
     unsigned char getFlash( const unsigned char * mem, unsigned int idx  );
 
 };
-
-SSD1306_Mini oled;
 
